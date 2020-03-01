@@ -1,12 +1,12 @@
 package de.devwhyqueue.batmanregistration.resource;
 
-import de.devwhyqueue.batmanregistration.model.DisciplineType;
-import de.devwhyqueue.batmanregistration.model.Division;
-import de.devwhyqueue.batmanregistration.model.Registration;
-import de.devwhyqueue.batmanregistration.model.Tournament;
+import de.devwhyqueue.batmanregistration.model.*;
 import de.devwhyqueue.batmanregistration.repository.RegistrationRepository;
 import de.devwhyqueue.batmanregistration.repository.TournamentRepository;
 import java.util.Optional;
+
+import de.devwhyqueue.batmanregistration.service.PlayerService;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -20,27 +20,31 @@ public class RegistrationResource {
 
   private TournamentRepository tournamentRepository;
   private RegistrationRepository registrationRepository;
+  private PlayerService playerService;
 
   public RegistrationResource(
-      TournamentRepository tournamentRepository, RegistrationRepository registrationRepository) {
+      TournamentRepository tournamentRepository, RegistrationRepository registrationRepository, PlayerService playerService) {
     this.tournamentRepository = tournamentRepository;
     this.registrationRepository = registrationRepository;
+    this.playerService = playerService;
   }
 
   @GetMapping("/tournament/current/registrations")
-  public Division getRegistrationsByDiscipline(@RequestParam Long disciplineId) {
+  public ResponseEntity<Registration> getRegistrationsByDiscipline(@RequestParam Long disciplineId) {
     Optional<Tournament> currentTournament = this.tournamentRepository
         .findFirstByOrderByStartDesc();
 
-    currentTournament.ifPresent(t -> System.out.println(this.registrationRepository
-        .findByTournamentDiscipline_TournamentAndTournamentDiscipline_Discipline_Id(t,
-            disciplineId)));
+    //this.registrationRepository.findByTournamentDiscipline_TournamentAndTournamentDiscipline_Discipline_Id(t, disciplineId);
+
     return null;
   }
 
   @GetMapping("/tournament/current/registrations/self")
   public Division getDivisionsByPlayerAndDisciplineType(
       @RequestParam DisciplineType disciplineType) {
+    Optional<Player> player = this.playerService.getPlayerInfoFromAuthService();
+    player.ifPresentOrElse(p -> System.out.println(player), () -> System.out.println());
+
     Optional<Tournament> currentTournament = this.tournamentRepository
         .findFirstByOrderByStartDesc();
     currentTournament.ifPresent(t -> System.out.println(this.registrationRepository
