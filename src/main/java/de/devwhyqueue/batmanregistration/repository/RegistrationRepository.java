@@ -15,6 +15,9 @@ public interface RegistrationRepository extends JpaRepository<Registration, Long
   List<Registration> findByTournamentDiscipline_Tournament(
       Tournament tournament);
 
+  Optional<Registration> findOneByTournamentDiscipline_TournamentAndUser(
+      Tournament tournament, User user);
+
   Optional<Registration> findOneByTournamentDiscipline_TournamentAndTournamentDiscipline_Discipline_DisciplineTypeAndUser(
       Tournament tournament, DisciplineType disciplineType, User user);
 

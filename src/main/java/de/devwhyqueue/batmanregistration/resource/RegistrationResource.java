@@ -36,7 +36,7 @@ public class RegistrationResource {
     this.playerService = playerService;
   }
 
-  @GetMapping("/tournament/current/registrations")
+  @GetMapping("/tournaments/current/registrations")
   public ResponseEntity<List<Registration>> getCurrentRegistrations() {
     Optional<Tournament> currentTournament = getCurrentTournament();
 
@@ -54,9 +54,8 @@ public class RegistrationResource {
     return ResponseEntity.ok(registrations);
   }
 
-  @GetMapping("/tournament/current/registrations/self/disciplineType/{disciplineType}")
-  public ResponseEntity<Registration> getOwnCurrentRegistrationByDisciplineType(
-      @PathVariable DisciplineType disciplineType) {
+  @GetMapping("/tournaments/current/registrations/self")
+  public ResponseEntity<Registration> getOwnCurrentRegistrations() {
     Optional<Tournament> currentTournament = getCurrentTournament();
 
     Optional<Player> player = this.playerService.getOwnPlayerInfoFromAuthService();
@@ -65,8 +64,7 @@ public class RegistrationResource {
             "Could not get user data from authentication service!"));
 
     Optional<Registration> registration = this.registrationRepository
-        .findOneByTournamentAndDisciplineTypeAndUser(currentTournament.get(),
-            disciplineType, player.get());
+        .findOneByTournamentDiscipline_TournamentAndUser(currentTournament.get(), player.get());
     registration.ifPresentOrElse(r -> r.setPlayer(player.get()), () -> {
       throw new ResponseStatusException(HttpStatus.NOT_FOUND, "No registration found!");
     });
@@ -75,7 +73,7 @@ public class RegistrationResource {
   }
 
   // TODO: Implement
-  @PostMapping("/tournament/current/registrations/self/disciplineType/SINGLE")
+  @PostMapping("/tournaments/current/registrations/self/disciplineType/SINGLE")
   public Division registerSingleForCurrentTournament(@RequestBody Division division) {
     Optional<Tournament> currentTournament = getCurrentTournament();
 
@@ -88,7 +86,7 @@ public class RegistrationResource {
   }
 
   // TODO: Implement
-  @PostMapping("/tournament/current/registrations/self/disciplineType/DOUBLE")
+  @PostMapping("/tournaments/current/registrations/self/disciplineType/DOUBLE")
   public Division registerDoubleForCurrentTournament(
       @RequestBody RegistrationWithPartnerDTO registrationDTO) {
     Optional<Tournament> currentTournament = getCurrentTournament();
@@ -102,7 +100,7 @@ public class RegistrationResource {
   }
 
   // TODO: Implement
-  @PostMapping("/tournament/current/registrations/self/disciplineType/MIXED")
+  @PostMapping("/tournaments/current/registrations/self/disciplineType/MIXED")
   public Division registerMixedForCurrentTournament(
       @RequestBody RegistrationWithPartnerDTO registrationDTO) {
     Optional<Tournament> currentTournament = getCurrentTournament();
@@ -115,7 +113,7 @@ public class RegistrationResource {
     return null;
   }
 
-  @DeleteMapping("/tournament/current/registrations/self/disciplineType/{disciplineType}")
+  @DeleteMapping("/tournaments/current/registrations/self/disciplineType/{disciplineType}")
   public ResponseEntity<Void> cancelOwnCurrentRegistrationByDisciplineType(
       @PathVariable DisciplineType disciplineType) {
     Optional<Tournament> currentTournament = getCurrentTournament();
