@@ -1,6 +1,6 @@
 package de.devwhyqueue.batmanregistration.model;
 
-public enum Status {
+public enum State {
   WAITING,
   PAYMENT_PENDING,
   CONFIRMED,

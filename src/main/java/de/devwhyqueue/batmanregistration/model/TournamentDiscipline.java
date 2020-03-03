@@ -1,5 +1,6 @@
 package de.devwhyqueue.batmanregistration.model;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
@@ -22,6 +23,7 @@ public class TournamentDiscipline {
 
   @ManyToOne
   private Tournament tournament;
+  @JsonManagedReference
   @ManyToOne
   private Discipline discipline;
 }

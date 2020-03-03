@@ -1,5 +1,6 @@
 package de.devwhyqueue.batmanregistration.model;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import java.util.List;
 import javax.persistence.Entity;
 import javax.persistence.Id;
@@ -17,6 +18,7 @@ public class Division {
   @Id
   private String name;
 
+  @JsonBackReference
   @OneToMany(mappedBy = "division")
   private List<Discipline> discipline;
 }

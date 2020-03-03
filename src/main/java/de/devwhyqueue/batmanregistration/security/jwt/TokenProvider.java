@@ -9,11 +9,13 @@ import java.security.Key;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.stream.Collectors;
+import javax.servlet.http.HttpServletRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
@@ -22,8 +24,6 @@ import org.springframework.security.core.userdetails.User;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.context.annotation.RequestScope;
-
-import javax.servlet.http.HttpServletRequest;
 
 @Component
 public class TokenProvider implements InitializingBean {
@@ -81,18 +81,20 @@ public class TokenProvider implements InitializingBean {
   public RestTemplate restTemplate(HttpServletRequest inReq) {
     // retrieve the auth header from incoming request
     final String authHeader =
-            inReq.getHeader(HttpHeaders.AUTHORIZATION);
-    final RestTemplate restTemplate = new RestTemplate();
+        inReq.getHeader(HttpHeaders.AUTHORIZATION);
+    SimpleClientHttpRequestFactory httpRequestFactory = new SimpleClientHttpRequestFactory();
+    httpRequestFactory.setConnectTimeout(3000);
+    final RestTemplate restTemplate = new RestTemplate(httpRequestFactory);
     // add a token if an incoming auth header exists, only
     if (authHeader != null && !authHeader.isEmpty()) {
       // since the header should be added to each outgoing request,
       // add an interceptor that handles this.
       restTemplate.getInterceptors().add(
-              (outReq, bytes, clientHttpReqExec) -> {
-                outReq.getHeaders().set(
-                        HttpHeaders.AUTHORIZATION, authHeader
-                );
-                return clientHttpReqExec.execute(outReq, bytes);
+          (outReq, bytes, clientHttpReqExec) -> {
+            outReq.getHeaders().set(
+                HttpHeaders.AUTHORIZATION, authHeader
+            );
+            return clientHttpReqExec.execute(outReq, bytes);
               });
     }
     return restTemplate;

@@ -3,16 +3,25 @@ package de.devwhyqueue.batmanregistration.repository;
 import de.devwhyqueue.batmanregistration.model.DisciplineType;
 import de.devwhyqueue.batmanregistration.model.Registration;
 import de.devwhyqueue.batmanregistration.model.Tournament;
+import de.devwhyqueue.batmanregistration.model.User;
 import java.util.List;
+import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 @Repository
 public interface RegistrationRepository extends JpaRepository<Registration, Long> {
 
-  List<Registration> findByTournamentDiscipline_TournamentAndTournamentDiscipline_Discipline_Id(
-      Tournament tournament, Long disciplineId);
+  List<Registration> findByTournamentDiscipline_Tournament(
+      Tournament tournament);
 
-  List<Registration> findByTournamentDiscipline_TournamentAndTournamentDiscipline_Discipline_DisciplineTypeAndPlayer_Id(
-      Tournament tournament, DisciplineType disciplineType, Long playerId);
+  Optional<Registration> findOneByTournamentDiscipline_TournamentAndTournamentDiscipline_Discipline_DisciplineTypeAndUser(
+      Tournament tournament, DisciplineType disciplineType, User user);
+
+  default Optional<Registration> findOneByTournamentAndDisciplineTypeAndUser(
+      Tournament tournament, DisciplineType disciplineType, User user) {
+    return findOneByTournamentDiscipline_TournamentAndTournamentDiscipline_Discipline_DisciplineTypeAndUser(
+        tournament, disciplineType,
+        user);
+  }
 }
