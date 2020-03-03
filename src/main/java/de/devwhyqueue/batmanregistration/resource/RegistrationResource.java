@@ -41,7 +41,7 @@ public class RegistrationResource {
     Optional<Tournament> currentTournament = getCurrentTournament();
 
     List<Registration> registrations = this.registrationRepository
-        .findByTournamentDiscipline_Tournament(currentTournament.get());
+        .findByTournamentDiscipline_TournamentOrderByRegistrationDate(currentTournament.get());
     registrations.forEach(r -> {
       Optional<Player> player = this.playerService
           .getPlayerInfoByIdFromAuthService(r.getUser().getId());
@@ -55,7 +55,7 @@ public class RegistrationResource {
   }
 
   @GetMapping("/tournaments/current/registrations/self")
-  public ResponseEntity<Registration> getOwnCurrentRegistrations() {
+  public ResponseEntity<List<Registration>> getOwnCurrentRegistrations() {
     Optional<Tournament> currentTournament = getCurrentTournament();
 
     Optional<Player> player = this.playerService.getOwnPlayerInfoFromAuthService();
@@ -63,13 +63,11 @@ public class RegistrationResource {
         () -> new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE,
             "Could not get user data from authentication service!"));
 
-    Optional<Registration> registration = this.registrationRepository
-        .findOneByTournamentDiscipline_TournamentAndUser(currentTournament.get(), player.get());
-    registration.ifPresentOrElse(r -> r.setPlayer(player.get()), () -> {
-      throw new ResponseStatusException(HttpStatus.NOT_FOUND, "No registration found!");
-    });
+    List<Registration> registrations = this.registrationRepository
+        .findByTournamentDiscipline_TournamentAndUser(currentTournament.get(), player.get());
+    registrations.forEach(r -> r.setPlayer(player.get()));
 
-    return ResponseEntity.ok(registration.get());
+    return ResponseEntity.ok(registrations);
   }
 
   // TODO: Implement

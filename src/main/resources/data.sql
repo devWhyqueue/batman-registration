@@ -52,7 +52,7 @@ INSERT INTO Registration (id, state, registration_date, user_id, partner_id, tou
 INSERT INTO Registration (id, state, registration_date, user_id, partner_id, tournament_discipline_id) VALUES (2, 1, '2020-01-01', 2, null, 1);
 INSERT INTO Registration (id, state, registration_date, user_id, partner_id, tournament_discipline_id) VALUES (3, 1, '2020-01-01', 3, null, 4);
 INSERT INTO Registration (id, state, registration_date, user_id, partner_id, tournament_discipline_id) VALUES (4, 1, '2020-01-01', 4, null, 4);
-INSERT INTO Registration (id, state, registration_date, user_id, partner_id, tournament_discipline_id) VALUES (5, 1, '2020-01-01', 2, 8, 2);
+INSERT INTO Registration (id, state, registration_date, user_id, partner_id, tournament_discipline_id) VALUES (5, 1, '2020-01-02', 2, 8, 2);
 INSERT INTO Registration (id, state, registration_date, user_id, partner_id, tournament_discipline_id) VALUES (6, 1, '2020-01-01', 3, 5, 5);
 INSERT INTO Registration (id, state, registration_date, user_id, partner_id, tournament_discipline_id) VALUES (7, 1, '2020-01-01', 4, 6, 5);
 INSERT INTO Registration (id, state, registration_date, user_id, partner_id, tournament_discipline_id) VALUES (8, 2, '2020-01-01', 1, 7, 2);
@@ -62,5 +62,6 @@ INSERT INTO Registration (id, state, registration_date, user_id, partner_id, tou
 INSERT INTO Registration (id, state, registration_date, user_id, partner_id, tournament_discipline_id) VALUES (12, 1, '2020-01-01', 10, null, 9);
 INSERT INTO Registration (id, state, registration_date, user_id, partner_id, tournament_discipline_id) VALUES (13, 1, '2020-01-01', 9, 11, 7);
 INSERT INTO Registration (id, state, registration_date, user_id, partner_id, tournament_discipline_id) VALUES (14, 1, '2020-01-01', 10, 12, 10);
+INSERT INTO Registration (id, state, registration_date, user_id, partner_id, tournament_discipline_id) VALUES (15, 1, '2020-01-01', 3, 11, 3);
 
 

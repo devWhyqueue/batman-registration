@@ -12,10 +12,10 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface RegistrationRepository extends JpaRepository<Registration, Long> {
 
-  List<Registration> findByTournamentDiscipline_Tournament(
+  List<Registration> findByTournamentDiscipline_TournamentOrderByRegistrationDate(
       Tournament tournament);
 
-  Optional<Registration> findOneByTournamentDiscipline_TournamentAndUser(
+  List<Registration> findByTournamentDiscipline_TournamentAndUser(
       Tournament tournament, User user);
 
   Optional<Registration> findOneByTournamentDiscipline_TournamentAndTournamentDiscipline_Discipline_DisciplineTypeAndUser(
