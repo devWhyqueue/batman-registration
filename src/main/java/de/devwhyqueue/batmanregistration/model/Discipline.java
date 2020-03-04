@@ -1,7 +1,6 @@
 package de.devwhyqueue.batmanregistration.model;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
-import com.fasterxml.jackson.annotation.JsonManagedReference;
 import java.util.List;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
@@ -26,7 +25,6 @@ public class Discipline {
   private DisciplineType disciplineType;
   private FieldType fieldType;
 
-  @JsonManagedReference
   @ManyToOne
   private Division division;
   @JsonBackReference

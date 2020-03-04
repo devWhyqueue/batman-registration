@@ -2,15 +2,20 @@ package de.devwhyqueue.batmanregistration.resource;
 
 import de.devwhyqueue.batmanregistration.model.DisciplineType;
 import de.devwhyqueue.batmanregistration.model.Division;
-import de.devwhyqueue.batmanregistration.model.Player;
 import de.devwhyqueue.batmanregistration.model.Registration;
-import de.devwhyqueue.batmanregistration.model.Tournament;
-import de.devwhyqueue.batmanregistration.repository.RegistrationRepository;
-import de.devwhyqueue.batmanregistration.repository.TournamentRepository;
 import de.devwhyqueue.batmanregistration.resource.dto.RegistrationWithPartnerDTO;
-import de.devwhyqueue.batmanregistration.service.PlayerService;
+import de.devwhyqueue.batmanregistration.resource.exception.ResponseStatusExceptionWithCode;
+import de.devwhyqueue.batmanregistration.service.RegistrationService;
+import de.devwhyqueue.batmanregistration.service.exception.AlreadyRegisteredException;
+import de.devwhyqueue.batmanregistration.service.exception.CloseOfEntriesExceededException;
+import de.devwhyqueue.batmanregistration.service.exception.DifferentGenderException;
+import de.devwhyqueue.batmanregistration.service.exception.SameGenderException;
+import de.devwhyqueue.batmanregistration.service.exception.UnavailableAuthServiceException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.List;
-import java.util.Optional;
+import javax.persistence.EntityNotFoundException;
+import javax.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -24,120 +29,115 @@ import org.springframework.web.server.ResponseStatusException;
 @RestController
 public class RegistrationResource {
 
-  private TournamentRepository tournamentRepository;
-  private RegistrationRepository registrationRepository;
-  private PlayerService playerService;
+  private RegistrationService registrationService;
 
   public RegistrationResource(
-      TournamentRepository tournamentRepository, RegistrationRepository registrationRepository,
-      PlayerService playerService) {
-    this.tournamentRepository = tournamentRepository;
-    this.registrationRepository = registrationRepository;
-    this.playerService = playerService;
+      RegistrationService registrationService) {
+    this.registrationService = registrationService;
   }
 
   @GetMapping("/tournaments/current/registrations")
   public ResponseEntity<List<Registration>> getCurrentRegistrations() {
-    Optional<Tournament> currentTournament = getCurrentTournament();
 
-    List<Registration> registrations = this.registrationRepository
-        .findByTournamentDiscipline_TournamentOrderByRegistrationDate(currentTournament.get());
-    registrations.forEach(r -> {
-      Optional<Player> player = this.playerService
-          .getPlayerInfoByIdFromAuthService(r.getUser().getId());
-      player.orElseThrow(
-          () -> new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE,
-              "Could not get user data from authentication service!"));
-      r.setPlayer(player.get());
-    });
-
-    return ResponseEntity.ok(registrations);
+    try {
+      List<Registration> registrations = this.registrationService.getCurrentRegistrations();
+      return ResponseEntity.ok(registrations);
+    } catch (UnavailableAuthServiceException e) {
+      throw new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE, e.getMessage());
+    } catch (EntityNotFoundException e) {
+      throw new ResponseStatusException(HttpStatus.NOT_FOUND, e.getMessage());
+    }
   }
 
   @GetMapping("/tournaments/current/registrations/self")
   public ResponseEntity<List<Registration>> getOwnCurrentRegistrations() {
-    Optional<Tournament> currentTournament = getCurrentTournament();
-
-    Optional<Player> player = this.playerService.getOwnPlayerInfoFromAuthService();
-    player.orElseThrow(
-        () -> new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE,
-            "Could not get user data from authentication service!"));
-
-    List<Registration> registrations = this.registrationRepository
-        .findByTournamentDiscipline_TournamentAndUser(currentTournament.get(), player.get());
-    registrations.forEach(r -> r.setPlayer(player.get()));
-
-    return ResponseEntity.ok(registrations);
+    try {
+      List<Registration> registrations = this.registrationService.getOwnCurrentRegistrations();
+      return ResponseEntity.ok(registrations);
+    } catch (UnavailableAuthServiceException e) {
+      throw new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE, e.getMessage());
+    } catch (EntityNotFoundException e) {
+      throw new ResponseStatusException(HttpStatus.NOT_FOUND, e.getMessage());
+    }
   }
 
-  // TODO: Implement
-  @PostMapping("/tournaments/current/registrations/self/disciplineType/SINGLE")
-  public Division registerSingleForCurrentTournament(@RequestBody Division division) {
-    Optional<Tournament> currentTournament = getCurrentTournament();
+  @PostMapping(value = "/tournaments/current/registrations/self/disciplineType/SINGLE")
+  public ResponseEntity<Registration> registerForSingleForCurrentTournament(
+      @Valid @RequestBody Division division) throws URISyntaxException {
 
-    // Set state, set date
-    // Check if capacity is not full
-    // Check close of entries
-    // Check if already registered (state)
-
-    return null;
+    try {
+      Registration registration = this.registrationService
+          .registerForSingleForCurrentTournament(division);
+      return ResponseEntity.created(
+          new URI(
+              "/api/tournaments/"
+                  + registration.getTournamentDiscipline().getTournament().getId()
+                  + "/registrations/" + registration.getId()))
+          .body(registration);
+    } catch (CloseOfEntriesExceededException e) {
+      throw new ResponseStatusExceptionWithCode(
+          HttpStatus.BAD_REQUEST, e.getMessage(), "error.closeOfEntriesExceeded");
+    } catch (UnavailableAuthServiceException e) {
+      throw new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE, e.getMessage());
+    } catch (AlreadyRegisteredException e) {
+      throw new ResponseStatusException(HttpStatus.CONFLICT, e.getMessage());
+    } catch (EntityNotFoundException e) {
+      throw new ResponseStatusException(HttpStatus.NOT_FOUND, e.getMessage());
+    }
   }
 
-  // TODO: Implement
   @PostMapping("/tournaments/current/registrations/self/disciplineType/DOUBLE")
-  public Division registerDoubleForCurrentTournament(
-      @RequestBody RegistrationWithPartnerDTO registrationDTO) {
-    Optional<Tournament> currentTournament = getCurrentTournament();
-
-    // Set state, set date
-    // Check if capacity is not full
-    // Check close of entries
-    // Check if already registered
-
-    return null;
+  public ResponseEntity<Registration> registerForDoubleForCurrentTournament(
+      @Valid @RequestBody RegistrationWithPartnerDTO registrationDTO) throws URISyntaxException {
+    return registerForDoubleOrMixedForCurrentTournament(registrationDTO, DisciplineType.DOUBLE);
   }
 
-  // TODO: Implement
   @PostMapping("/tournaments/current/registrations/self/disciplineType/MIXED")
-  public Division registerMixedForCurrentTournament(
-      @RequestBody RegistrationWithPartnerDTO registrationDTO) {
-    Optional<Tournament> currentTournament = getCurrentTournament();
-
-    // Set state, set date
-    // Check if capacity is not full
-    // Check close of entries
-    // Check if already registered
-
-    return null;
+  public ResponseEntity<Registration> registerForMixedForCurrentTournament(
+      @Valid @RequestBody RegistrationWithPartnerDTO registrationDTO) throws URISyntaxException {
+    return registerForDoubleOrMixedForCurrentTournament(registrationDTO, DisciplineType.MIXED);
   }
 
   @DeleteMapping("/tournaments/current/registrations/self/disciplineType/{disciplineType}")
   public ResponseEntity<Void> cancelOwnCurrentRegistrationByDisciplineType(
       @PathVariable DisciplineType disciplineType) {
-    Optional<Tournament> currentTournament = getCurrentTournament();
-
-    Optional<Player> player = this.playerService.getOwnPlayerInfoFromAuthService();
-    player.orElseThrow(
-        () -> new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE,
-            "Could not get user data from authentication service!"));
-
-    Optional<Registration> registration = this.registrationRepository
-        .findOneByTournamentAndDisciplineTypeAndUser(currentTournament.get(),
-            disciplineType, player.get());
-    registration.ifPresent(r -> {
-      r.cancel();
-      this.registrationRepository.save(r);
-    });
-
+    try {
+      this.registrationService.cancelOwnCurrentRegistrationByDisciplineType(disciplineType);
+    } catch (UnavailableAuthServiceException e) {
+      throw new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE, e.getMessage());
+    } catch (EntityNotFoundException e) {
+      throw new ResponseStatusException(HttpStatus.NOT_FOUND, e.getMessage());
+    }
     return ResponseEntity.noContent().build();
   }
 
-  private Optional<Tournament> getCurrentTournament() throws ResponseStatusException {
-    Optional<Tournament> currentTournament = this.tournamentRepository
-        .findFirstByOrderByStartDesc();
-    currentTournament.orElseThrow(
-        () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "There is no current tournament!"));
-
-    return currentTournament;
+  private ResponseEntity<Registration> registerForDoubleOrMixedForCurrentTournament(
+      RegistrationWithPartnerDTO registrationDTO, DisciplineType disciplineType)
+      throws URISyntaxException {
+    try {
+      Registration registration = this.registrationService
+          .registerForDoubleOrMixedForCurrentTournament(registrationDTO, disciplineType);
+      return ResponseEntity.created(
+          new URI(
+              "/api/tournaments/"
+                  + registration.getTournamentDiscipline().getTournament().getId()
+                  + "/registrations/" + registration.getId()))
+          .body(registration);
+    } catch (CloseOfEntriesExceededException e) {
+      throw new ResponseStatusExceptionWithCode(
+          HttpStatus.BAD_REQUEST, e.getMessage(), "error.closeOfEntriesExceeded");
+    } catch (UnavailableAuthServiceException e) {
+      throw new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE, e.getMessage());
+    } catch (AlreadyRegisteredException e) {
+      throw new ResponseStatusException(HttpStatus.CONFLICT, e.getMessage());
+    } catch (EntityNotFoundException e) {
+      throw new ResponseStatusException(HttpStatus.NOT_FOUND, e.getMessage());
+    } catch (SameGenderException e) {
+      throw new ResponseStatusExceptionWithCode(
+          HttpStatus.BAD_REQUEST, e.getMessage(), "error.sameGender");
+    } catch (DifferentGenderException e) {
+      throw new ResponseStatusExceptionWithCode(
+          HttpStatus.BAD_REQUEST, e.getMessage(), "error.differentGender");
+    }
   }
 }

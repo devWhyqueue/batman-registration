@@ -34,8 +34,25 @@ public class Registration {
   @ManyToOne
   private TournamentDiscipline tournamentDiscipline;
 
-  public boolean isCancellationRequestedOrCancelled() {
-    return Arrays.asList(State.REFUND_PENDING, State.CANCELLED).contains(this.state);
+  public Registration() {
+  }
+
+  public Registration(User user, Player player, Player partner,
+      TournamentDiscipline tournamentDiscipline, Integer numOfCurrentRegistrations) {
+    this.registrationDate = LocalDate.now();
+    this.user = user;
+    this.player = player;
+    this.partner = partner;
+    this.tournamentDiscipline = tournamentDiscipline;
+    setState(numOfCurrentRegistrations);
+  }
+
+  private void setState(Integer numOfRegistrations) {
+    if (numOfRegistrations == this.tournamentDiscipline.getCapacity()) {
+      this.state = State.WAITING;
+    } else {
+      this.state = State.PAYMENT_PENDING;
+    }
   }
 
   public void cancel() {
@@ -45,5 +62,4 @@ public class Registration {
       this.state = State.REFUND_PENDING;
     }
   }
-
 }
