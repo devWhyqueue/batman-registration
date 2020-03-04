@@ -5,6 +5,7 @@ import java.util.List;
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.OneToMany;
+import javax.validation.constraints.NotNull;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
@@ -16,6 +17,7 @@ import lombok.ToString;
 public class Division {
 
   @Id
+  @NotNull
   private String name;
 
   @JsonIgnore

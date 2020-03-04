@@ -1,10 +1,10 @@
-create sequence hibernate_sequence start 1 increment 1;
+create sequence hibernate_sequence start 20 increment 1;
 create table batman_user (id int8 not null, primary key (id));
 create table discipline (id int8 not null, discipline_type int4, field_type int4, division_name varchar(255), primary key (id));
 create table division (name varchar(255) not null, primary key (name));
 create table player (id int8 not null, club varchar(255), first_name varchar(255), gender int4, last_name varchar(255), primary key (id));
 create table registration (id int8 not null, registration_date date, state int4, partner_id int8, tournament_discipline_id int8, user_id int8, primary key (id));
-create table tournament (id int8 not null, close_of_entries date, end date, name varchar(255), start date, primary key (id));
+create table tournament (id int8 not null, close_of_entries date, "end" date, name varchar(255), start date, primary key (id));
 create table tournament_discipline (id int8 not null, capacity int4, registration_fee float8, discipline_id int8, tournament_id int8, primary key (id));
 alter table if exists discipline add constraint FKtq6u76woehchd6sntyacwaf9q foreign key (division_name) references division;
 alter table if exists registration add constraint FKhmyyu2ljiwo8x10kjfab1pkru foreign key (partner_id) references player;
