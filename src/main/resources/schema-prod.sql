@@ -1,4 +1,4 @@
-create sequence hibernate_sequence start 20 increment 1;
+create sequence hibernate_sequence start 1 increment 1;
 create table batman_user (id int8 not null, primary key (id));
 create table discipline (id int8 not null, discipline_type int4 not null, field_type int4 not null, division_name varchar(255), primary key (id));
 create table division (name varchar(255) not null, primary key (name));

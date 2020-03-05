@@ -6,6 +6,7 @@ DELETE FROM Division WHERE true;
 DELETE FROM Player WHERE true;
 DELETE FROM Batman_User WHERE true;
 
+-- Quote column start as the name is a reserved keyword
 INSERT INTO Tournament (id, name, start, end, close_of_entries) VALUES (1, 'Turnier 1', '2020-02-01', '2020-02-03', '2020-01-01');
 INSERT INTO Tournament (id, name, start, end, close_of_entries) VALUES (2, 'Stauseepokal 2020', '2021-06-20', '2021-06-21', '2021-06-14');
 
@@ -60,5 +61,7 @@ INSERT INTO Registration (id, state, registration_date, user_id, partner_id, tou
 INSERT INTO Registration (id, state, registration_date, user_id, partner_id, tournament_discipline_id) VALUES (12, 1, '2020-03-01', 10, null, 9);
 INSERT INTO Registration (id, state, registration_date, user_id, partner_id, tournament_discipline_id) VALUES (13, 1, '2020-03-01', 9, 11, 7);
 INSERT INTO Registration (id, state, registration_date, user_id, partner_id, tournament_discipline_id) VALUES (14, 1, '2020-03-01', 10, 12, 10);
+
+ALTER SEQUENCE Hibernate_Sequence RESTART WITH 20;
 
 
