@@ -53,10 +53,10 @@ public class RemoteAuthService {
         }
     }
 
-    public void deleteUserById(Long id) throws UnavailableAuthServiceException {
+    public void deleteOwnUser() throws UnavailableAuthServiceException {
         try {
             restTemplate.exchange(
-                authServer + "users/" + id, HttpMethod.DELETE, null,
+                authServer + "users/self", HttpMethod.DELETE, null,
                 new ParameterizedTypeReference<>() {
                 });
         } catch (RestClientException ex) {
