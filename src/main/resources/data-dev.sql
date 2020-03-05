@@ -6,8 +6,8 @@ DELETE FROM Division WHERE true;
 DELETE FROM Batman_User WHERE true;
 DELETE FROM Player WHERE true;
 
-INSERT INTO Tournament (id, name, start, "end", close_of_entries) VALUES (1, 'Turnier 1', '2020-02-01', '2020-02-03', '2020-01-01');
-INSERT INTO Tournament (id, name, start, "end", close_of_entries) VALUES (2, 'Stauseepokal 2020', '2021-06-20', '2021-06-21', '2021-06-14');
+INSERT INTO Tournament (id, name, start, end, close_of_entries) VALUES (1, 'Turnier 1', '2020-02-01', '2020-02-03', '2020-01-01');
+INSERT INTO Tournament (id, name, start, end, close_of_entries) VALUES (2, 'Stauseepokal 2020', '2021-06-20', '2021-06-21', '2021-06-14');
 
 INSERT INTO Division (name) VALUES ('A');
 INSERT INTO Division (name) VALUES ('B');
