@@ -1,12 +1,12 @@
-package de.devwhyqueue.batmanregistration.resource.exception;
+package de.devwhyqueue.batmanregistration.config;
 
+import de.devwhyqueue.batmanregistration.resource.exception.ResponseStatusExceptionWithCode;
 import java.util.Map;
 import org.springframework.boot.web.servlet.error.DefaultErrorAttributes;
-import org.springframework.stereotype.Component;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.web.context.request.WebRequest;
 
-
-@Component
+@Configuration
 public class CustomErrorAttributes extends DefaultErrorAttributes {
 
   @Override

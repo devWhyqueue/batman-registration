@@ -9,12 +9,12 @@ import de.devwhyqueue.batmanregistration.service.RegistrationService;
 import de.devwhyqueue.batmanregistration.service.exception.AlreadyRegisteredException;
 import de.devwhyqueue.batmanregistration.service.exception.CloseOfEntriesExceededException;
 import de.devwhyqueue.batmanregistration.service.exception.DifferentGenderException;
+import de.devwhyqueue.batmanregistration.service.exception.NotFoundException;
 import de.devwhyqueue.batmanregistration.service.exception.SameGenderException;
 import de.devwhyqueue.batmanregistration.service.exception.UnavailableAuthServiceException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.List;
-import javax.persistence.EntityNotFoundException;
 import javax.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -38,13 +38,12 @@ public class RegistrationResource {
 
   @GetMapping("/tournaments/current/registrations")
   public ResponseEntity<List<Registration>> getCurrentRegistrations() {
-
     try {
       List<Registration> registrations = this.registrationService.getCurrentRegistrations();
       return ResponseEntity.ok(registrations);
     } catch (UnavailableAuthServiceException e) {
       throw new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE, e.getMessage());
-    } catch (EntityNotFoundException e) {
+    } catch (NotFoundException e) {
       throw new ResponseStatusException(HttpStatus.NOT_FOUND, e.getMessage());
     }
   }
@@ -56,7 +55,7 @@ public class RegistrationResource {
       return ResponseEntity.ok(registrations);
     } catch (UnavailableAuthServiceException e) {
       throw new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE, e.getMessage());
-    } catch (EntityNotFoundException e) {
+    } catch (NotFoundException e) {
       throw new ResponseStatusException(HttpStatus.NOT_FOUND, e.getMessage());
     }
   }
@@ -81,7 +80,7 @@ public class RegistrationResource {
       throw new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE, e.getMessage());
     } catch (AlreadyRegisteredException e) {
       throw new ResponseStatusException(HttpStatus.CONFLICT, e.getMessage());
-    } catch (EntityNotFoundException e) {
+    } catch (NotFoundException e) {
       throw new ResponseStatusException(HttpStatus.NOT_FOUND, e.getMessage());
     }
   }
@@ -105,7 +104,7 @@ public class RegistrationResource {
       this.registrationService.cancelOwnCurrentRegistrationByDisciplineType(disciplineType);
     } catch (UnavailableAuthServiceException e) {
       throw new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE, e.getMessage());
-    } catch (EntityNotFoundException e) {
+    } catch (NotFoundException e) {
       throw new ResponseStatusException(HttpStatus.NOT_FOUND, e.getMessage());
     }
     return ResponseEntity.noContent().build();
@@ -130,7 +129,7 @@ public class RegistrationResource {
       throw new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE, e.getMessage());
     } catch (AlreadyRegisteredException e) {
       throw new ResponseStatusException(HttpStatus.CONFLICT, e.getMessage());
-    } catch (EntityNotFoundException e) {
+    } catch (NotFoundException e) {
       throw new ResponseStatusException(HttpStatus.NOT_FOUND, e.getMessage());
     } catch (SameGenderException e) {
       throw new ResponseStatusExceptionWithCode(

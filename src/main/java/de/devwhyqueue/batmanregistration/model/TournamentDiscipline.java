@@ -6,6 +6,8 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.ManyToOne;
+import javax.validation.constraints.Min;
+import javax.validation.constraints.NotNull;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
@@ -18,7 +20,10 @@ public class TournamentDiscipline {
   @GeneratedValue(strategy = GenerationType.AUTO)
   private Long id;
 
+  @NotNull
+  @Min(1)
   private Integer capacity;
+  @NotNull
   private Double registrationFee;
 
   @ManyToOne

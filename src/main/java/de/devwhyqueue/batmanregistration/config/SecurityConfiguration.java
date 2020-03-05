@@ -32,7 +32,7 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
         .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
         .and()
         .authorizeRequests()
-        .antMatchers("/tournaments/current/registrations").permitAll()
+        .antMatchers(HttpMethod.GET, "/tournaments/current/registrations").permitAll()
         .anyRequest().authenticated()
         .and()
         .apply(securityConfigurerAdapter());

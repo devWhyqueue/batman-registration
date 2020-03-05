@@ -9,6 +9,8 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.ManyToOne;
 import javax.persistence.Transient;
+import javax.validation.constraints.NotNull;
+import javax.validation.constraints.PastOrPresent;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
@@ -21,7 +23,10 @@ public class Registration {
   @GeneratedValue(strategy = GenerationType.AUTO)
   private Long id;
 
+  @NotNull
   private State state;
+  @NotNull
+  @PastOrPresent
   private LocalDate registrationDate;
 
   @JsonIgnore

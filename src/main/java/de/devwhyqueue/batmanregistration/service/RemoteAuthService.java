@@ -15,19 +15,19 @@ import org.springframework.web.client.RestTemplate;
 
 @Service
 @Transactional
-public class PlayerInfoService {
+public class RemoteAuthService {
 
-    private final Logger log = LoggerFactory.getLogger(PlayerInfoService.class);
+    private final Logger log = LoggerFactory.getLogger(RemoteAuthService.class);
 
-    @Value("${auth.uri}")
+    @Value("${auth.url}")
     private String authServer;
     private RestTemplate restTemplate;
 
-    public PlayerInfoService(RestTemplate restTemplate) {
+    public RemoteAuthService(RestTemplate restTemplate) {
         this.restTemplate = restTemplate;
     }
 
-    public Player getOwnPlayerInfoFromAuthService() throws UnavailableAuthServiceException {
+    public Player getOwnPlayerInfo() throws UnavailableAuthServiceException {
         try {
             ResponseEntity<Player> response = restTemplate.exchange(
                 authServer + "users/self", HttpMethod.GET, null,
@@ -40,7 +40,7 @@ public class PlayerInfoService {
         }
     }
 
-    public Player getPlayerInfoByIdFromAuthService(Long id) throws UnavailableAuthServiceException {
+    public Player getPlayerInfoById(Long id) throws UnavailableAuthServiceException {
         try {
             ResponseEntity<Player> response = restTemplate.exchange(
                 authServer + "users/" + id, HttpMethod.GET, null,
@@ -52,4 +52,18 @@ public class PlayerInfoService {
             throw new UnavailableAuthServiceException();
         }
     }
+
+    public void deleteUserById(Long id) throws UnavailableAuthServiceException {
+        try {
+            restTemplate.exchange(
+                authServer + "users/" + id, HttpMethod.DELETE, null,
+                new ParameterizedTypeReference<>() {
+                });
+        } catch (RestClientException ex) {
+            log.error("Could not reach authentication service at {}", authServer);
+            throw new UnavailableAuthServiceException();
+        }
+    }
+
+
 }

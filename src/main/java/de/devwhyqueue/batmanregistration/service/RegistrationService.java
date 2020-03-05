@@ -11,17 +11,15 @@ import de.devwhyqueue.batmanregistration.model.TournamentDiscipline;
 import de.devwhyqueue.batmanregistration.model.User;
 import de.devwhyqueue.batmanregistration.repository.PlayerRepository;
 import de.devwhyqueue.batmanregistration.repository.RegistrationRepository;
-import de.devwhyqueue.batmanregistration.repository.TournamentDisciplineRepository;
-import de.devwhyqueue.batmanregistration.repository.TournamentRepository;
 import de.devwhyqueue.batmanregistration.resource.dto.RegistrationWithPartnerDTO;
 import de.devwhyqueue.batmanregistration.service.exception.AlreadyRegisteredException;
 import de.devwhyqueue.batmanregistration.service.exception.CloseOfEntriesExceededException;
 import de.devwhyqueue.batmanregistration.service.exception.DifferentGenderException;
+import de.devwhyqueue.batmanregistration.service.exception.NotFoundException;
 import de.devwhyqueue.batmanregistration.service.exception.SameGenderException;
 import de.devwhyqueue.batmanregistration.service.exception.UnavailableAuthServiceException;
 import java.util.List;
 import java.util.Optional;
-import javax.persistence.EntityNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -29,42 +27,39 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional
 public class RegistrationService {
 
-  private PlayerInfoService playerInfoService;
+  private RemoteAuthService remoteAuthService;
 
   private UserService userService;
+  private TournamentService tournamentService;
+  private TournamentDisciplineService tournamentDisciplineService;
 
-  private TournamentRepository tournamentRepository;
   private PlayerRepository playerRepository;
-  private TournamentDisciplineRepository tournamentDisciplineRepository;
   private RegistrationRepository registrationRepository;
 
   public RegistrationService(
-      TournamentRepository tournamentRepository,
-      PlayerInfoService playerInfoService,
+      RemoteAuthService remoteAuthService,
       UserService userService,
+      TournamentService tournamentService,
+      TournamentDisciplineService tournamentDisciplineService,
       PlayerRepository playerRepository,
-      RegistrationRepository registrationRepository,
-      TournamentDisciplineRepository tournamentDisciplineRepository) {
-    this.tournamentRepository = tournamentRepository;
-    this.playerInfoService = playerInfoService;
+      RegistrationRepository registrationRepository) {
+    this.remoteAuthService = remoteAuthService;
     this.userService = userService;
+    this.tournamentService = tournamentService;
+    this.tournamentDisciplineService = tournamentDisciplineService;
     this.playerRepository = playerRepository;
     this.registrationRepository = registrationRepository;
-    this.tournamentDisciplineRepository = tournamentDisciplineRepository;
   }
 
   @Transactional(readOnly = true)
   public List<Registration> getCurrentRegistrations()
-      throws EntityNotFoundException, UnavailableAuthServiceException {
-    Tournament tournament = this.tournamentRepository.getFirstByOrderByStartDesc();
-    if (tournament == null) {
-      throw new EntityNotFoundException();
-    }
+      throws NotFoundException, UnavailableAuthServiceException {
+    Tournament tournament = this.tournamentService.getCurrentTournament();
 
     List<Registration> registrations = this.registrationRepository
         .findByTournamentDiscipline_TournamentOrderByRegistrationDate(tournament);
     for (Registration r : registrations) {
-      Player player = this.playerInfoService.getPlayerInfoByIdFromAuthService(r.getUser().getId());
+      Player player = this.remoteAuthService.getPlayerInfoById(r.getUser().getId());
       r.setPlayer(player);
     }
     return registrations;
@@ -72,13 +67,10 @@ public class RegistrationService {
 
   @Transactional(readOnly = true)
   public List<Registration> getOwnCurrentRegistrations()
-      throws EntityNotFoundException, UnavailableAuthServiceException {
-    Tournament tournament = this.tournamentRepository.getFirstByOrderByStartDesc();
-    if (tournament == null) {
-      throw new EntityNotFoundException();
-    }
+      throws NotFoundException, UnavailableAuthServiceException {
+    Tournament tournament = this.tournamentService.getCurrentTournament();
 
-    Player player = this.playerInfoService.getOwnPlayerInfoFromAuthService();
+    Player player = this.remoteAuthService.getOwnPlayerInfo();
 
     List<Registration> registrations = this.registrationRepository
         .findByTournamentDiscipline_TournamentAndUser_Id(tournament, player.getId());
@@ -90,16 +82,13 @@ public class RegistrationService {
 
   public Registration registerForSingleForCurrentTournament(Division division)
       throws CloseOfEntriesExceededException,
-      UnavailableAuthServiceException, AlreadyRegisteredException, EntityNotFoundException {
-    Tournament tournament = this.tournamentRepository.getFirstByOrderByStartDesc();
-    if (tournament == null) {
-      throw new EntityNotFoundException();
-    }
+      UnavailableAuthServiceException, AlreadyRegisteredException, NotFoundException {
+    Tournament tournament = this.tournamentService.getCurrentTournament();
     if (tournament.isCloseOfEntriesExceeded()) {
       throw new CloseOfEntriesExceededException();
     }
 
-    Player player = this.playerInfoService.getOwnPlayerInfoFromAuthService();
+    Player player = this.remoteAuthService.getOwnPlayerInfo();
 
     if (this.registrationRepository
         .findOneByTournamentAndDisciplineTypeAndUserId(tournament, DisciplineType.SINGLE,
@@ -110,12 +99,9 @@ public class RegistrationService {
 
     FieldType fieldType =
         player.getGender() == Gender.MALE ? FieldType.MALE : FieldType.FEMALE;
-    TournamentDiscipline tDiscipline = this.tournamentDisciplineRepository
-        .getByTournamentAndDisciplineTypeAndFieldTypeAndDivision(
+    TournamentDiscipline tDiscipline = this.tournamentDisciplineService
+        .findByTournamentAndDisciplineTypeAndFieldTypeAndDivision(
             tournament, DisciplineType.SINGLE, fieldType, division);
-    if (tDiscipline == null) {
-      throw new EntityNotFoundException();
-    }
 
     User user = this.userService.getOrCreate(player.getId());
 
@@ -130,16 +116,13 @@ public class RegistrationService {
   public Registration registerForDoubleOrMixedForCurrentTournament(
       RegistrationWithPartnerDTO registrationDTO, DisciplineType disciplineType)
       throws CloseOfEntriesExceededException,
-      UnavailableAuthServiceException, AlreadyRegisteredException, EntityNotFoundException, SameGenderException, DifferentGenderException {
-    Tournament tournament = this.tournamentRepository.getFirstByOrderByStartDesc();
-    if (tournament == null) {
-      throw new EntityNotFoundException();
-    }
+      UnavailableAuthServiceException, AlreadyRegisteredException, NotFoundException, SameGenderException, DifferentGenderException {
+    Tournament tournament = this.tournamentService.getCurrentTournament();
     if (tournament.isCloseOfEntriesExceeded()) {
       throw new CloseOfEntriesExceededException();
     }
 
-    Player player = this.playerInfoService.getOwnPlayerInfoFromAuthService();
+    Player player = this.remoteAuthService.getOwnPlayerInfo();
 
     if (this.registrationRepository
         .findOneByTournamentAndDisciplineTypeAndUserId(tournament, disciplineType, player.getId())
@@ -150,12 +133,9 @@ public class RegistrationService {
     FieldType fieldType =
         player.getGender() == Gender.MALE ? FieldType.MALE : FieldType.FEMALE;
     fieldType = disciplineType == DisciplineType.MIXED ? FieldType.MIXED : fieldType;
-    TournamentDiscipline tDiscipline = this.tournamentDisciplineRepository
-        .getByTournamentAndDisciplineTypeAndFieldTypeAndDivision(
+    TournamentDiscipline tDiscipline = this.tournamentDisciplineService
+        .findByTournamentAndDisciplineTypeAndFieldTypeAndDivision(
             tournament, disciplineType, fieldType, registrationDTO.getDivision());
-    if (tDiscipline == null) {
-      throw new EntityNotFoundException();
-    }
 
     User user = this.userService.getOrCreate(player.getId());
 
@@ -167,7 +147,9 @@ public class RegistrationService {
         .getPartner().getGender()) {
       throw new DifferentGenderException();
     }
-    Player partner = this.playerRepository.save(registrationDTO.getPartner());
+    Player partner = registrationDTO.getPartner();
+    partner.setCreatedByUser(user);
+    partner = this.playerRepository.save(partner);
 
     Integer numOfRegistrations = this.registrationRepository
         .countByTournamentDiscipline(tDiscipline);
@@ -178,13 +160,10 @@ public class RegistrationService {
   }
 
   public void cancelOwnCurrentRegistrationByDisciplineType(DisciplineType disciplineType)
-      throws EntityNotFoundException, UnavailableAuthServiceException {
-    Tournament tournament = this.tournamentRepository.getFirstByOrderByStartDesc();
-    if (tournament == null) {
-      throw new EntityNotFoundException();
-    }
+      throws NotFoundException, UnavailableAuthServiceException {
+    Tournament tournament = this.tournamentService.getCurrentTournament();
 
-    Player player = this.playerInfoService.getOwnPlayerInfoFromAuthService();
+    Player player = this.remoteAuthService.getOwnPlayerInfo();
 
     Optional<Registration> registration = this.registrationRepository
         .findOneByTournamentAndDisciplineTypeAndUserId(tournament, disciplineType, player.getId());

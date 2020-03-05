@@ -41,17 +41,17 @@ public class TokenProvider implements InitializingBean {
   }
 
   @Override
-  public void afterPropertiesSet() throws Exception {
+  public void afterPropertiesSet() {
     byte[] keyBytes;
-    String secret = jwtProperties.getBase64Secret();
     log.debug("Using a Base64-encoded JWT secret key");
     keyBytes = Decoders.BASE64.decode(jwtProperties.getBase64Secret());
     this.key = Keys.hmacShaKeyFor(keyBytes);
   }
 
   public Authentication getAuthentication(String token) {
-    Claims claims = Jwts.parser()
+    Claims claims = Jwts.parserBuilder()
         .setSigningKey(key)
+        .build()
         .parseClaimsJws(token)
         .getBody();
 
@@ -67,7 +67,7 @@ public class TokenProvider implements InitializingBean {
 
   public boolean validateToken(String authToken) {
     try {
-      Jwts.parser().setSigningKey(key).parseClaimsJws(authToken);
+      Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(authToken);
       return true;
     } catch (JwtException | IllegalArgumentException e) {
       log.info("Invalid JWT token.");
@@ -78,7 +78,7 @@ public class TokenProvider implements InitializingBean {
 
   @Bean
   @RequestScope
-  public RestTemplate restTemplate(HttpServletRequest inReq) {
+  public RestTemplate restTemplateWithToken(HttpServletRequest inReq) {
     // retrieve the auth header from incoming request
     final String authHeader =
         inReq.getHeader(HttpHeaders.AUTHORIZATION);
