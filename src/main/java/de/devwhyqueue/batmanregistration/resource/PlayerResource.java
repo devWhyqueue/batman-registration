@@ -29,7 +29,9 @@ public class PlayerResource {
       Player player = this.remoteAuthService.getOwnPlayerInfo();
 
       this.remoteAuthService.deleteOwnUser();
-      this.userRepository.deleteById(player.getId());
+      if(this.userRepository.existsById(player.getId())){
+        this.userRepository.deleteById(player.getId());
+      }
       return ResponseEntity.noContent().build();
     } catch (UnavailableAuthServiceException e) {
       throw new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE, e.getMessage());
