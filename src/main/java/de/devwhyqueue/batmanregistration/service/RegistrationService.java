@@ -1,17 +1,16 @@
 package de.devwhyqueue.batmanregistration.service;
 
 import de.devwhyqueue.batmanregistration.model.DisciplineType;
-import de.devwhyqueue.batmanregistration.model.Division;
 import de.devwhyqueue.batmanregistration.model.FieldType;
 import de.devwhyqueue.batmanregistration.model.Gender;
+import de.devwhyqueue.batmanregistration.model.Manager;
 import de.devwhyqueue.batmanregistration.model.Player;
 import de.devwhyqueue.batmanregistration.model.Registration;
 import de.devwhyqueue.batmanregistration.model.Tournament;
 import de.devwhyqueue.batmanregistration.model.TournamentDiscipline;
-import de.devwhyqueue.batmanregistration.model.User;
-import de.devwhyqueue.batmanregistration.repository.PlayerRepository;
 import de.devwhyqueue.batmanregistration.repository.RegistrationRepository;
 import de.devwhyqueue.batmanregistration.resource.dto.RegistrationWithPartnerDTO;
+import de.devwhyqueue.batmanregistration.resource.dto.SingleRegistrationDTO;
 import de.devwhyqueue.batmanregistration.service.exception.AlreadyRegisteredException;
 import de.devwhyqueue.batmanregistration.service.exception.CloseOfEntriesExceededException;
 import de.devwhyqueue.batmanregistration.service.exception.DifferentGenderException;
@@ -29,39 +28,35 @@ public class RegistrationService {
 
   private RemoteAuthService remoteAuthService;
 
-  private UserService userService;
+  private ManagerService managerService;
   private TournamentService tournamentService;
   private TournamentDisciplineService tournamentDisciplineService;
 
-  private PlayerRepository playerRepository;
+  private PlayerService playerService;
   private RegistrationRepository registrationRepository;
 
   public RegistrationService(
       RemoteAuthService remoteAuthService,
-      UserService userService,
+      ManagerService managerService,
       TournamentService tournamentService,
       TournamentDisciplineService tournamentDisciplineService,
-      PlayerRepository playerRepository,
+      PlayerService playerService,
       RegistrationRepository registrationRepository) {
     this.remoteAuthService = remoteAuthService;
-    this.userService = userService;
+    this.managerService = managerService;
     this.tournamentService = tournamentService;
     this.tournamentDisciplineService = tournamentDisciplineService;
-    this.playerRepository = playerRepository;
+    this.playerService = playerService;
     this.registrationRepository = registrationRepository;
   }
 
   @Transactional(readOnly = true)
   public List<Registration> getCurrentRegistrations()
-      throws NotFoundException, UnavailableAuthServiceException {
+      throws NotFoundException {
     Tournament tournament = this.tournamentService.getCurrentTournament();
 
     List<Registration> registrations = this.registrationRepository
         .findByTournamentDiscipline_TournamentOrderByRegistrationDate(tournament);
-    for (Registration r : registrations) {
-      Player player = this.remoteAuthService.getPlayerInfoById(r.getUser().getId());
-      r.setPlayer(player);
-    }
     return registrations;
   }
 
@@ -70,44 +65,54 @@ public class RegistrationService {
       throws NotFoundException, UnavailableAuthServiceException {
     Tournament tournament = this.tournamentService.getCurrentTournament();
 
-    Player player = this.remoteAuthService.getOwnPlayerInfo();
+    Player manager = this.remoteAuthService.getOwnUserInfo();
 
     List<Registration> registrations = this.registrationRepository
-        .findByTournamentDiscipline_TournamentAndUser_Id(tournament, player.getId());
-    registrations.forEach(r -> r.setPlayer(player));
+        .findByTournamentDiscipline_TournamentAndCreatedByManager_Id(tournament, manager.getId());
 
     return registrations;
   }
 
 
-  public Registration registerForSingleForCurrentTournament(Division division)
+  public Registration registerForSingleForCurrentTournament(
+      SingleRegistrationDTO singleRegistration)
       throws CloseOfEntriesExceededException,
-      UnavailableAuthServiceException, AlreadyRegisteredException, NotFoundException {
+      UnavailableAuthServiceException, NotFoundException, AlreadyRegisteredException {
+    // Check if tournament available and close of entry not exceeded
     Tournament tournament = this.tournamentService.getCurrentTournament();
     if (tournament.isCloseOfEntriesExceeded()) {
       throw new CloseOfEntriesExceededException();
     }
 
-    Player player = this.remoteAuthService.getOwnPlayerInfo();
+    // Find tournament discipline
+    FieldType fieldType =
+        singleRegistration.getPlayer().getGender() == Gender.MALE ? FieldType.MALE
+            : FieldType.FEMALE;
+    TournamentDiscipline tDiscipline = this.tournamentDisciplineService
+        .findByTournamentAndDisciplineTypeAndFieldTypeAndDivision(
+            tournament, DisciplineType.SINGLE, fieldType, singleRegistration.getDivision());
 
+    // Get info about registration submitter
+    Player managerInfo = this.remoteAuthService.getOwnUserInfo();
+    Manager manager = this.managerService.getOrCreate(managerInfo.getId());
+
+    // Save player
+    Player player = singleRegistration.getPlayer();
+    player.setCreatedByManager(manager);
+    player = this.playerService.getOrCreate(player);
+
+    // Check if already registered
     if (this.registrationRepository
-        .findOneByTournamentAndDisciplineTypeAndUserId(tournament, DisciplineType.SINGLE,
+        .findOneByTournamentAndDisciplineTypeAndPlayer_Id(tournament, DisciplineType.SINGLE,
             player.getId())
         .isPresent()) {
       throw new AlreadyRegisteredException();
     }
 
-    FieldType fieldType =
-        player.getGender() == Gender.MALE ? FieldType.MALE : FieldType.FEMALE;
-    TournamentDiscipline tDiscipline = this.tournamentDisciplineService
-        .findByTournamentAndDisciplineTypeAndFieldTypeAndDivision(
-            tournament, DisciplineType.SINGLE, fieldType, division);
-
-    User user = this.userService.getOrCreate(player.getId());
-
+    // Save registration
     Integer numOfRegistrations = this.registrationRepository
         .countByTournamentDiscipline(tDiscipline);
-    Registration registration = new Registration(user, player, null, tDiscipline,
+    Registration registration = new Registration(manager, player, null, tDiscipline,
         numOfRegistrations);
 
     return this.registrationRepository.save(registration);
@@ -116,57 +121,76 @@ public class RegistrationService {
   public Registration registerForDoubleOrMixedForCurrentTournament(
       RegistrationWithPartnerDTO registrationDTO, DisciplineType disciplineType)
       throws CloseOfEntriesExceededException,
-      UnavailableAuthServiceException, AlreadyRegisteredException, NotFoundException, SameGenderException, DifferentGenderException {
+      UnavailableAuthServiceException, NotFoundException, SameGenderException, DifferentGenderException, AlreadyRegisteredException {
+    // Check if tournament available and close of entry not exceeded
     Tournament tournament = this.tournamentService.getCurrentTournament();
     if (tournament.isCloseOfEntriesExceeded()) {
       throw new CloseOfEntriesExceededException();
     }
 
-    Player player = this.remoteAuthService.getOwnPlayerInfo();
-
-    if (this.registrationRepository
-        .findOneByTournamentAndDisciplineTypeAndUserId(tournament, disciplineType, player.getId())
-        .isPresent()) {
-      throw new AlreadyRegisteredException();
-    }
-
+    // Find tournament discipline
     FieldType fieldType =
-        player.getGender() == Gender.MALE ? FieldType.MALE : FieldType.FEMALE;
+        registrationDTO.getPlayer().getGender() == Gender.MALE ? FieldType.MALE : FieldType.FEMALE;
     fieldType = disciplineType == DisciplineType.MIXED ? FieldType.MIXED : fieldType;
     TournamentDiscipline tDiscipline = this.tournamentDisciplineService
         .findByTournamentAndDisciplineTypeAndFieldTypeAndDivision(
             tournament, disciplineType, fieldType, registrationDTO.getDivision());
 
-    User user = this.userService.getOrCreate(player.getId());
+    // Get info about registration submitter
+    Player managerInfo = this.remoteAuthService.getOwnUserInfo();
+    Manager manager = this.managerService.getOrCreate(managerInfo.getId());
 
-    if (disciplineType == DisciplineType.MIXED && player.getGender() == registrationDTO.getPartner()
+    // Check genders
+    if (disciplineType == DisciplineType.MIXED
+        && registrationDTO.getPlayer().getGender() == registrationDTO.getPartner()
         .getGender()) {
       throw new SameGenderException();
     }
-    if (disciplineType == DisciplineType.DOUBLE && player.getGender() != registrationDTO
+    if (disciplineType == DisciplineType.DOUBLE
+        && registrationDTO.getPlayer().getGender() != registrationDTO
         .getPartner().getGender()) {
       throw new DifferentGenderException();
     }
-    Player partner = registrationDTO.getPartner();
-    partner.setCreatedByUser(user);
-    partner = this.playerRepository.save(partner);
 
+    // Save player and partner
+    Player player = registrationDTO.getPlayer();
+    player.setCreatedByManager(manager);
+    player = this.playerService.getOrCreate(player);
+    Player partner = registrationDTO.getPartner();
+    partner.setCreatedByManager(manager);
+    partner = this.playerService.getOrCreate(partner);
+
+    // Check if one of them is already registered
+    if (this.registrationRepository
+        .findOneByTournamentAndDisciplineTypeAndPlayer_Id(tournament, disciplineType,
+            player.getId())
+        .isPresent() ||
+        this.registrationRepository
+            .findOneByTournamentAndDisciplineTypeAndPlayer_Id(tournament, disciplineType,
+                partner.getId()).isPresent()) {
+      throw new AlreadyRegisteredException();
+    }
+
+    // Save registration
     Integer numOfRegistrations = this.registrationRepository
         .countByTournamentDiscipline(tDiscipline);
-    Registration registration = new Registration(user, player, partner, tDiscipline,
+    Registration registration = new Registration(manager, player, partner, tDiscipline,
         numOfRegistrations);
 
     return this.registrationRepository.save(registration);
   }
 
+  // TODO: Implement (CancelRegistrationDTO)
   public void cancelOwnCurrentRegistrationByDisciplineType(DisciplineType disciplineType)
       throws NotFoundException, UnavailableAuthServiceException {
     Tournament tournament = this.tournamentService.getCurrentTournament();
 
-    Player player = this.remoteAuthService.getOwnPlayerInfo();
+    // That's not the player, pls fix
+    Player manager = this.remoteAuthService.getOwnUserInfo();
 
     Optional<Registration> registration = this.registrationRepository
-        .findOneByTournamentAndDisciplineTypeAndUserId(tournament, disciplineType, player.getId());
+        .findOneByTournamentAndDisciplineTypeAndPlayer_Id(tournament, disciplineType,
+            manager.getId());
     registration.ifPresent(r -> {
       r.cancel();
       this.registrationRepository.save(r);

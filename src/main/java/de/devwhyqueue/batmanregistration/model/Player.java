@@ -6,6 +6,8 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.ManyToOne;
+import javax.persistence.Table;
+import javax.persistence.UniqueConstraint;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 import lombok.Data;
@@ -14,8 +16,11 @@ import lombok.ToString;
 
 @Entity
 @Data
-@EqualsAndHashCode(of = "id")
-@ToString(exclude = "createdByUser")
+@EqualsAndHashCode(of = {"firstName", "lastName", "gender", "club"})
+@Table(uniqueConstraints = {
+    @UniqueConstraint(columnNames = {"firstName", "lastName", "gender", "club"})
+})
+@ToString(exclude = "createdByManager")
 public class Player {
 
   @Id
@@ -36,5 +41,5 @@ public class Player {
 
   @JsonIgnore
   @ManyToOne
-  private User createdByUser;
+  private Manager createdByManager;
 }

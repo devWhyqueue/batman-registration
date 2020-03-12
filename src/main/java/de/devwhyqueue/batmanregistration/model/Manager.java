@@ -11,27 +11,27 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 
-@Entity(name = "batman_user")
+@Entity
 @Data
 @EqualsAndHashCode(of = "id")
 @ToString(of = "id")
-public class User {
+public class Manager {
 
   @Id
   @NotNull
   private Long id;
 
   @JsonIgnore
-  @OneToMany(mappedBy = "user", cascade = CascadeType.REMOVE)
+  @OneToMany(mappedBy = "createdByManager", cascade = CascadeType.REMOVE)
   private List<Registration> registrations;
   @JsonIgnore
-  @OneToMany(mappedBy = "createdByUser", cascade = CascadeType.REMOVE)
-  private List<Player> partners;
+  @OneToMany(mappedBy = "createdByManager", cascade = CascadeType.REMOVE)
+  private List<Player> players;
 
-  public User() {
+  public Manager() {
   }
 
-  public User(Long id) {
+  public Manager(Long id) {
     this.id = id;
   }
 }

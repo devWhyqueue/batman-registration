@@ -8,7 +8,6 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.ManyToOne;
-import javax.persistence.Transient;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.PastOrPresent;
 import lombok.Data;
@@ -31,8 +30,8 @@ public class Registration {
 
   @JsonIgnore
   @ManyToOne
-  private User user;
-  @Transient
+  private Manager createdByManager;
+  @ManyToOne
   private Player player;
   @ManyToOne
   private Player partner;
@@ -42,10 +41,10 @@ public class Registration {
   public Registration() {
   }
 
-  public Registration(User user, Player player, Player partner,
+  public Registration(Manager createdByManager, Player player, Player partner,
       TournamentDiscipline tournamentDiscipline, Integer numOfCurrentRegistrations) {
     this.registrationDate = LocalDate.now();
-    this.user = user;
+    this.createdByManager = createdByManager;
     this.player = player;
     this.partner = partner;
     this.tournamentDiscipline = tournamentDiscipline;

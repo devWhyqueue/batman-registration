@@ -25,17 +25,17 @@ public class RemoteAuthService {
         this.restTemplate = restTemplate;
     }
 
-    public Player getOwnPlayerInfo() throws UnavailableAuthServiceException {
-        try {
-            ResponseEntity<Player> response = restTemplate.exchange(
-                authServer + "users/self", HttpMethod.GET, null,
-                new ParameterizedTypeReference<>() {
-                });
-            return response.getBody();
-        } catch (RestClientException ex) {
-            log.error("Could not reach authentication service at {}", authServer);
-            throw new UnavailableAuthServiceException();
-        }
+    public Player getOwnUserInfo() throws UnavailableAuthServiceException {
+      try {
+        ResponseEntity<Player> response = restTemplate.exchange(
+            authServer + "users/self", HttpMethod.GET, null,
+            new ParameterizedTypeReference<>() {
+            });
+        return response.getBody();
+      } catch (RestClientException ex) {
+        log.error("Could not reach authentication service at {}", authServer);
+        throw new UnavailableAuthServiceException();
+      }
     }
 
     public Player getPlayerInfoById(Long id) throws UnavailableAuthServiceException {

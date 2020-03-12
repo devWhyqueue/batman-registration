@@ -1,7 +1,7 @@
 package de.devwhyqueue.batmanregistration.resource;
 
 import de.devwhyqueue.batmanregistration.model.Player;
-import de.devwhyqueue.batmanregistration.repository.UserRepository;
+import de.devwhyqueue.batmanregistration.repository.ManagerRepository;
 import de.devwhyqueue.batmanregistration.service.RemoteAuthService;
 import de.devwhyqueue.batmanregistration.service.exception.UnavailableAuthServiceException;
 import org.springframework.http.HttpStatus;
@@ -14,23 +14,23 @@ import org.springframework.web.server.ResponseStatusException;
 public class PlayerResource {
 
   private RemoteAuthService remoteAuthService;
-  private UserRepository userRepository;
+  private ManagerRepository managerRepository;
 
   public PlayerResource(
       RemoteAuthService remoteAuthService,
-      UserRepository userRepository) {
+      ManagerRepository managerRepository) {
     this.remoteAuthService = remoteAuthService;
-    this.userRepository = userRepository;
+    this.managerRepository = managerRepository;
   }
 
   @DeleteMapping("/players/self")
   public ResponseEntity<Void> deletePlayer() {
     try {
-      Player player = this.remoteAuthService.getOwnPlayerInfo();
+      Player player = this.remoteAuthService.getOwnUserInfo();
 
       this.remoteAuthService.deleteOwnUser();
-      if(this.userRepository.existsById(player.getId())){
-        this.userRepository.deleteById(player.getId());
+      if (this.managerRepository.existsById(player.getId())) {
+        this.managerRepository.deleteById(player.getId());
       }
       return ResponseEntity.noContent().build();
     } catch (UnavailableAuthServiceException e) {

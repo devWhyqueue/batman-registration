@@ -6,12 +6,10 @@ import javax.validation.constraints.NotNull;
 import lombok.Data;
 
 @Data
-public class RegistrationWithPartnerDTO {
+public class SingleRegistrationDTO {
 
   @NotNull
   private Division division;
   @NotNull
   private Player player;
-  @NotNull
-  private Player partner;
 }

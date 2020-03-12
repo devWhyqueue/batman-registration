@@ -1,9 +1,9 @@
 package de.devwhyqueue.batmanregistration.resource;
 
 import de.devwhyqueue.batmanregistration.model.DisciplineType;
-import de.devwhyqueue.batmanregistration.model.Division;
 import de.devwhyqueue.batmanregistration.model.Registration;
 import de.devwhyqueue.batmanregistration.resource.dto.RegistrationWithPartnerDTO;
+import de.devwhyqueue.batmanregistration.resource.dto.SingleRegistrationDTO;
 import de.devwhyqueue.batmanregistration.resource.exception.ResponseStatusExceptionWithCode;
 import de.devwhyqueue.batmanregistration.service.RegistrationService;
 import de.devwhyqueue.batmanregistration.service.exception.AlreadyRegisteredException;
@@ -41,8 +41,6 @@ public class RegistrationResource {
     try {
       List<Registration> registrations = this.registrationService.getCurrentRegistrations();
       return ResponseEntity.ok(registrations);
-    } catch (UnavailableAuthServiceException e) {
-      throw new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE, e.getMessage());
     } catch (NotFoundException e) {
       throw new ResponseStatusException(HttpStatus.NOT_FOUND, e.getMessage());
     }
@@ -62,11 +60,11 @@ public class RegistrationResource {
 
   @PostMapping(value = "/tournaments/current/registrations/self/disciplineType/SINGLE")
   public ResponseEntity<Registration> registerForSingleForCurrentTournament(
-      @Valid @RequestBody Division division) throws URISyntaxException {
+      @Valid @RequestBody SingleRegistrationDTO registrationDTO) throws URISyntaxException {
 
     try {
       Registration registration = this.registrationService
-          .registerForSingleForCurrentTournament(division);
+          .registerForSingleForCurrentTournament(registrationDTO);
       return ResponseEntity.created(
           new URI(
               "/api/tournaments/"
@@ -78,10 +76,10 @@ public class RegistrationResource {
           HttpStatus.BAD_REQUEST, e.getMessage(), "error.closeOfEntriesExceeded");
     } catch (UnavailableAuthServiceException e) {
       throw new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE, e.getMessage());
-    } catch (AlreadyRegisteredException e) {
-      throw new ResponseStatusException(HttpStatus.CONFLICT, e.getMessage());
     } catch (NotFoundException e) {
       throw new ResponseStatusException(HttpStatus.NOT_FOUND, e.getMessage());
+    } catch (AlreadyRegisteredException e) {
+      throw new ResponseStatusException(HttpStatus.CONFLICT, e.getMessage());
     }
   }
 
@@ -127,8 +125,6 @@ public class RegistrationResource {
           HttpStatus.BAD_REQUEST, e.getMessage(), "error.closeOfEntriesExceeded");
     } catch (UnavailableAuthServiceException e) {
       throw new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE, e.getMessage());
-    } catch (AlreadyRegisteredException e) {
-      throw new ResponseStatusException(HttpStatus.CONFLICT, e.getMessage());
     } catch (NotFoundException e) {
       throw new ResponseStatusException(HttpStatus.NOT_FOUND, e.getMessage());
     } catch (SameGenderException e) {
@@ -137,6 +133,8 @@ public class RegistrationResource {
     } catch (DifferentGenderException e) {
       throw new ResponseStatusExceptionWithCode(
           HttpStatus.BAD_REQUEST, e.getMessage(), "error.differentGender");
+    } catch (AlreadyRegisteredException e) {
+      throw new ResponseStatusException(HttpStatus.CONFLICT, e.getMessage());
     }
   }
 }
