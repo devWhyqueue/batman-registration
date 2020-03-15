@@ -79,28 +79,29 @@ VALUES (4, 8, 8, 2, 4);
 INSERT INTO Tournament_Discipline (id, capacity, registration_fee, tournament_id, discipline_id)
 VALUES (5, 8, 16, 2, 5);
 INSERT INTO Tournament_Discipline (id, capacity, registration_fee, tournament_id, discipline_id)
-VALUES (6, 8, 8, 2, 6);
+VALUES (6, 16, 8, 2, 6);
 INSERT INTO Tournament_Discipline (id, capacity, registration_fee, tournament_id, discipline_id)
-VALUES (7, 8, 16, 2, 7);
+VALUES (7, 16, 16, 2, 7);
 INSERT INTO Tournament_Discipline (id, capacity, registration_fee, tournament_id, discipline_id)
-VALUES (8, 8, 16, 2, 8);
+VALUES (8, 16, 16, 2, 8);
 INSERT INTO Tournament_Discipline (id, capacity, registration_fee, tournament_id, discipline_id)
-VALUES (9, 8, 8, 2, 9);
+VALUES (9, 16, 8, 2, 9);
 INSERT INTO Tournament_Discipline (id, capacity, registration_fee, tournament_id, discipline_id)
-VALUES (10, 8, 16, 2, 10);
-VALUES (11, 8, 8, 2, 11);
+VALUES (10, 16, 16, 2, 10);
 INSERT INTO Tournament_Discipline (id, capacity, registration_fee, tournament_id, discipline_id)
-VALUES (12, 8, 16, 2, 12);
+VALUES (11, 16, 8, 2, 11);
 INSERT INTO Tournament_Discipline (id, capacity, registration_fee, tournament_id, discipline_id)
-VALUES (13, 8, 16, 2, 13);
+VALUES (12, 16, 16, 2, 12);
 INSERT INTO Tournament_Discipline (id, capacity, registration_fee, tournament_id, discipline_id)
-VALUES (14, 8, 8, 2, 14);
+VALUES (13, 16, 16, 2, 13);
 INSERT INTO Tournament_Discipline (id, capacity, registration_fee, tournament_id, discipline_id)
-VALUES (15, 8, 16, 2, 15);
+VALUES (14, 16, 8, 2, 14);
 INSERT INTO Tournament_Discipline (id, capacity, registration_fee, tournament_id, discipline_id)
-VALUES (16, 8, 16, 2, 16);
+VALUES (15, 16, 16, 2, 15);
 INSERT INTO Tournament_Discipline (id, capacity, registration_fee, tournament_id, discipline_id)
-VALUES (17, 8, 16, 2, 17);
+VALUES (16, 16, 16, 2, 16);
+INSERT INTO Tournament_Discipline (id, capacity, registration_fee, tournament_id, discipline_id)
+VALUES (17, 16, 16, 2, 17);
 
 INSERT INTO Manager (id)
 VALUES (1);
