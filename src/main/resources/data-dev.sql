@@ -30,6 +30,8 @@ INSERT INTO Division (name)
 VALUES ('B');
 INSERT INTO Division (name)
 VALUES ('C');
+INSERT INTO Division (name)
+VALUES ('D');
 
 INSERT INTO Discipline (id, discipline_type, field_type, division_name)
 VALUES (1, 0, 0, 'A');
@@ -61,6 +63,10 @@ INSERT INTO Discipline (id, discipline_type, field_type, division_name)
 VALUES (14, 0, 1, 'C');
 INSERT INTO Discipline (id, discipline_type, field_type, division_name)
 VALUES (15, 1, 1, 'C');
+INSERT INTO Discipline (id, discipline_type, field_type, division_name)
+VALUES (16, 1, 0, 'D');
+INSERT INTO Discipline (id, discipline_type, field_type, division_name)
+VALUES (17, 2, 2, 'D');
 
 INSERT INTO Tournament_Discipline (id, capacity, registration_fee, tournament_id, discipline_id)
 VALUES (1, 8, 8, 2, 1);
@@ -91,6 +97,10 @@ INSERT INTO Tournament_Discipline (id, capacity, registration_fee, tournament_id
 VALUES (14, 8, 8, 2, 14);
 INSERT INTO Tournament_Discipline (id, capacity, registration_fee, tournament_id, discipline_id)
 VALUES (15, 8, 16, 2, 15);
+INSERT INTO Tournament_Discipline (id, capacity, registration_fee, tournament_id, discipline_id)
+VALUES (16, 8, 16, 2, 16);
+INSERT INTO Tournament_Discipline (id, capacity, registration_fee, tournament_id, discipline_id)
+VALUES (17, 8, 16, 2, 17);
 
 INSERT INTO Manager (id)
 VALUES (1);
