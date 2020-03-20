@@ -110,7 +110,6 @@ public class TokenProvider implements InitializingBean {
   @RequestScope
   public RestTemplate restTemplateWithSystemToken() {
     String jwt = createSystemToken();
-    System.out.println(jwt);
     SimpleClientHttpRequestFactory httpRequestFactory = new SimpleClientHttpRequestFactory();
     httpRequestFactory.setConnectTimeout(3000);
     final RestTemplate restTemplate = new RestTemplate(httpRequestFactory);
