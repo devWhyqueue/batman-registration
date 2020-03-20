@@ -10,6 +10,6 @@ import org.springframework.context.annotation.Configuration;
 @Getter
 @Setter
 public class JWTProperties {
-
+  private int tokenValiditySec;
   private String base64Secret;
 }
